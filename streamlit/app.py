@@ -1,4 +1,3 @@
-import requests
 import streamlit as st
 from utils import search, chat
 
