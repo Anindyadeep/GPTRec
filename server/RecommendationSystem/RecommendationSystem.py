@@ -1,4 +1,4 @@
-import subprocess
+import zipfile
 import dotenv
 import json
 import copy
@@ -13,7 +13,7 @@ from pymongo.mongo_client import MongoClient
 
 
 class RecommendationSystem:
-    dotenv.load_dotenv("../../.env")
+    dotenv.load_dotenv(".env")
 
     model_id = os.environ.get("HF_MODEL_ID")
     prem_api_key = os.environ.get("PREM_API_KEY")
@@ -29,12 +29,15 @@ class RecommendationSystem:
         self.client = Prem(api_key=self.prem_api_key)
 
         url = "https://drive.google.com/uc?id=1HpM0rWT9SZr8MTeJ_KMG9G9utWDVn0Qk"
-        output = "./server/RecommendationSystem/data.zip"
-        data_output_path = "./server/RecommendationSystem/."
-        data_path = "./server/RecommendationSystem/data"
+        output = "./data.zip"
+        data_output_path = "."
+        data_path = "./data"
 
         gdown.download(url, output)
-        subprocess.run(["unzip", str(output), "-d", data_output_path])
+        print("Zip extraction started...")
+        with zipfile.ZipFile(output, "r") as zip_ref:
+            zip_ref.extractall(data_output_path)
+        print("Zip extraction completed")
 
         self.model = AutoModel.from_pretrained(
             self.model_id, trust_remote_code=True
