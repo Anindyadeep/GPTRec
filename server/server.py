@@ -55,10 +55,7 @@ async def get_movies(page: int = Query(default=1, ge=1), page_size: int = Query(
 
 @app.get("/api/v1/movie/{movie_id}")
 async def get_movie(movie_id: str):
-    # if len(identifier) == 24 and all(c in "0123456789abcdef" for c in identifier):
     query = {"_id": movie_id}
-    # else:
-    #     query = {"title": identifier}
     movie = db.get_collection("movies").find_one(query)
     db.get_collection("watch-history").update_one(
     {"movieId": movie_id},
