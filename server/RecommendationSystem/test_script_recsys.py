@@ -18,7 +18,7 @@ docs = rs.recommend(
 # recommend with json
 # docs = rs.recommend(
 #     {
-#         "release_year": 2007,
+#         "year": 2007,
 #         "directors": ["Jir Menzel"],
 #         "actors": [
 #             "Ivan Barnev",
