@@ -3,7 +3,7 @@ import dotenv
 import json
 import copy
 import os
-
+from pathlib import Path
 import gdown
 import lancedb
 from premai import Prem
@@ -26,9 +26,12 @@ class RecommendationSystem:
         self.client = Prem(api_key=self.prem_api_key)
 
         url = "https://drive.google.com/uc?id=1HpM0rWT9SZr8MTeJ_KMG9G9utWDVn0Qk"
-        output = "./data.zip"
-        data_output_path = "."
-        data_path = ".\data\movies-data"
+        base_dir = Path(__file__).resolve().parent 
+        output_path  = base_dir / "data.zip"
+        data_output_path = base_dir
+        data_path = base_dir / "data" / "movies-data"
+        output = str(output_path)
+
 
         if not os.path.exists(output):
             print("Downloading data...")

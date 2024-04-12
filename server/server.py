@@ -43,6 +43,8 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/api/v1/status")
 def status():
     return {"status": "running"}
+
+# endpoint to fetch all movies in a paginated manner for home page
 @app.get("/api/v1/movies")
 async def get_movies(page: int = Query(default=1, ge=1), page_size: int = Query(default=100, le=500)):
     skip = (page - 1) * page_size
@@ -53,6 +55,7 @@ async def get_movies(page: int = Query(default=1, ge=1), page_size: int = Query(
         movies_list.append(movie)
     return movies_list
 
+#fetch all details for a specific movie as well as insert in watch history collection
 @app.get("/api/v1/movie/{movie_id}")
 async def get_movie(movie_id: str):
     query = {"_id": movie_id}
@@ -67,6 +70,7 @@ async def get_movie(movie_id: str):
     else:
         raise HTTPException(status_code=404, detail="Movie not found")
 
+#endpoint to fetch all similar movies either based on text input (eg: show me movies about old men who can do magic) or json based input as a list similar to the input in the test script
 @app.post(
     "/api/v1/recommend",
     response_model=RecommendationResponse,
@@ -84,7 +88,10 @@ def predict(request: Request, body: RecommendationRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/vi/watch_history_recommend")
+#endpoint for fetching docs from the user's watch history  that are also similar.
+@app.post("/api/v1/watch_history_recommend", response_model=RecommendationResponse,
+    responses={422: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+)
 def rec_similar(request:Request,body: RecommendationRequest):
     try:
         result = rs.recommend(body.text,flag="watch_history")
