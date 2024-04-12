@@ -78,11 +78,15 @@ async def get_movie(movie_id: str):
 )
 def predict(request: Request, body: RecommendationRequest):
     try:
-        result = rs.recommend(body.text,True)
+        if body.objs:
+            query = body.objs[0]
+        else:
+            query=body.text
+        result = rs.recommend(query,True)
         return {
             "search_id": body.id,
             "response_id": str(uuid.uuid4()),
-            "search_query": body.text,
+            "search_query": str(query),
             "search_results": result
         }
     except Exception as e:
@@ -94,11 +98,15 @@ def predict(request: Request, body: RecommendationRequest):
 )
 def rec_similar(request:Request,body: RecommendationRequest):
     try:
-        result = rs.recommend(body.text,flag="watch_history")
+        if body.objs:
+            query = body.objs[0]
+        else:
+            query=body.text
+        result = rs.recommend(query,True,flag="watch_history")
         return {
             "search_id": body.id,
             "response_id": str(uuid.uuid4()),
-            "search_query": body.text,
+            "search_query": str(query),
             "search_results": result
         }
     except Exception as e:
