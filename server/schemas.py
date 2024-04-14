@@ -1,21 +1,18 @@
 import uuid
 from typing import Dict, Any
 from pydantic import BaseModel, Field
-from typing import List,Dict
-
 
 
 class RecommendationRequest(BaseModel):
     id: str = Field(default=str(uuid.uuid4()))
-    text: str = None
-    objs: List[dict] = None
+    query: str
 
 
 class RecommendationResponse(BaseModel):
     search_id: str
     response_id: str
-    search_query: str 
-    search_results: List[Dict]
+    search_query: str
+    search_results: Dict[Any, Any]
 
 
 class ErrorResponse(BaseModel):
