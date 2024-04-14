@@ -1,4 +1,5 @@
 import uuid
+from typing import Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -10,8 +11,8 @@ class RecommendationRequest(BaseModel):
 class RecommendationResponse(BaseModel):
     search_id: str
     response_id: str
-    search_query: str 
-    search_results: dict 
+    search_query: str
+    search_results: Dict[Any, Any]
 
 
 class ErrorResponse(BaseModel):
