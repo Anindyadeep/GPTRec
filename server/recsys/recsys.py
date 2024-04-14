@@ -217,7 +217,6 @@ class RecommendationSystem:
                 )
             ]
         else:
-            lister = [int(x) for x in list(result.to_df()["index"].values)]
             pipeline = [
                 {
                     "$match": {
