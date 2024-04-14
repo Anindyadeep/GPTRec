@@ -1,54 +1,39 @@
-import zipfile
-import dotenv
+import os
+import subprocess
 import json
 import copy
-import os
-from pathlib import Path
+from dotenv import load_dotenv
+
 import gdown
 import lancedb
 from premai import Prem
 from transformers import AutoModel
-from mongo import db
+from recsys.mongo import db
+
+from pydantic import BaseModel
+
+load_dotenv()
+
 
 class RecommendationSystem:
-    dotenv.load_dotenv("../.env")
-
-    model_id = os.environ.get("HF_MODEL_ID")
-    prem_api_key = os.environ.get("PREM_API_KEY")
-    prem_project_id = os.environ.get("PREM_PROJECT_ID")
-
-    def __init__(
-        self,
-        rerank_config,
-    ):
-        device = rerank_config["device"]
+    def __init__(self, config: BaseModel, rerank_config: BaseModel):
+        self.config = config
+        device = rerank_config.device
         self.rerank_config = rerank_config
-        self.client = Prem(api_key=self.prem_api_key)
+        self.client = Prem(api_key=self.config.prem_api_key)
 
-        url = "https://drive.google.com/uc?id=1HpM0rWT9SZr8MTeJ_KMG9G9utWDVn0Qk"
-        base_dir = Path(__file__).resolve().parent 
-        output_path  = base_dir / "data.zip"
-        data_output_path = base_dir
-        data_path = base_dir / "data" / "movies-data"
-        output = str(output_path)
-
-
-        if not os.path.exists(output):
-            print("Downloading data...")
-            gdown.download(url, output)
-            print("Download completed")
-
-        if not os.path.exists(data_path):
-            print("Zip extraction started...")
-            with zipfile.ZipFile(output, "r") as zip_ref:
-                zip_ref.extractall(data_output_path)
-            print("Zip extraction completed")
+        if not os.path.exists(self.config.data_path):
+            gdown.download(self.config.drive_url, self.config.zip_path)
+            subprocess.run(
+                ["unzip", str(self.config.zip_path), "-d", self.config.output_folder]
+            )
 
         self.model = AutoModel.from_pretrained(
-            self.model_id, trust_remote_code=True
+            self.config.model_id, trust_remote_code=True
         ).to(device)
 
-        self.lance_db = lancedb.connect(data_path)
+        self.lance_db = lancedb.connect(self.config.data_path)
+        # self.lance_db.create_table("fullplot_vectors", self.config.data_path)
         self.fullplot_vectors = self.lance_db.open_table("fullplot_vectors")
 
     def prompt_generator(self, message):
@@ -95,12 +80,12 @@ class RecommendationSystem:
         ]
 
         response = self.client.chat.completions.create(
-            project_id=self.prem_project_id, messages=messages, temperature=1.0
+            project_id=self.config.prem_project_id, messages=messages, temperature=1.0
         )
         response = self.parse(response.choices)
         return response
 
-    def get_data_from_mongo(self,coll_name,query):
+    def get_data_from_mongo(self, coll_name, query):
         result = db.get_collection(coll_name).find(query)
         return result
 
@@ -124,7 +109,7 @@ class RecommendationSystem:
 
             if query_json.get("year"):
                 release_year = int(query_json.get("year"))
-                fuzzy_range = self.rerank_config["release_year_fuzzy_value"]
+                fuzzy_range = self.rerank_config.release_year_fuzzy_value
                 filtered_list = []
                 for doc in final_docs:
                     if doc["mongo_doc"].get("released") and (
@@ -142,7 +127,11 @@ class RecommendationSystem:
                     for doc in final_docs
                     if (
                         len(
-                            list(set(directors).intersection(doc["mongo_doc"]["directors"]))
+                            list(
+                                set(directors).intersection(
+                                    doc["mongo_doc"]["directors"]
+                                )
+                            )
                         )
                         > 0
                     )
@@ -153,7 +142,10 @@ class RecommendationSystem:
                 final_docs = [
                     doc
                     for doc in final_docs
-                    if (len(list(set(actors).intersection(doc["mongo_doc"]["cast"]))) > 0)
+                    if (
+                        len(list(set(actors).intersection(doc["mongo_doc"]["cast"])))
+                        > 0
+                    )
                 ]
 
             if query_json.get("genres"):
@@ -161,12 +153,15 @@ class RecommendationSystem:
                 final_docs = [
                     doc
                     for doc in final_docs
-                    if (len(list(set(genres).intersection(doc["mongo_doc"]["genres"]))) > 0)
+                    if (
+                        len(list(set(genres).intersection(doc["mongo_doc"]["genres"])))
+                        > 0
+                    )
                 ]
 
-            if len(final_docs) >= self.rerank_config["total_recommendations_required"]:
+            if len(final_docs) >= self.rerank_config.total_recommendations_required:
                 final_docs = final_docs[
-                    self.rerank_config["total_recommendations_required"]
+                    self.rerank_config.total_recommendations_required
                 ]
             else:
                 final_docs = sorted(final_docs, key=lambda x: x["_distance"])
@@ -179,7 +174,7 @@ class RecommendationSystem:
                 remaining_docs = sorted(remaining_docs, key=lambda x: x["_distance"])
 
                 for doc in remaining_docs[
-                    : (self.rerank_config["total_recommendations_required"] - len(indexes))
+                    : (self.rerank_config.total_recommendations_required - len(indexes))
                 ]:
                     final_docs.append(doc)
 
@@ -191,10 +186,9 @@ class RecommendationSystem:
             return results
 
         except Exception as e:
-            print("\n error: ",e)
+            print("\n error: ", e)
 
-
-    def recommend(self, input, show_structured_json=False,flag="search"):
+    def recommend(self, input, show_structured_json=False, flag="search"):
         if type(input) == dict:
             response_json = input
         else:
@@ -202,30 +196,35 @@ class RecommendationSystem:
             response_json["fullplot"] = input
             print(response_json) if show_structured_json else ...
 
-        total_recommendations_required = self.rerank_config[
-            "total_recommendations_required"
-        ]
+        total_recommendations_required = (
+            self.rerank_config.total_recommendations_required
+        )
         embeddings = self.model.encode(response_json["fullplot"])
         result = self.fullplot_vectors.search(embeddings).limit(
             total_recommendations_required * 2
         )
-        if flag =='search':
+        if flag == "search":
             movie_docs = [
-                    doc
-                    for doc in db.get_collection( "movies").find( {
-                            "vector_id": {
-                                "$in": [int(x) for x in list(result.to_df()["index"].values)]
-                            }
-                        })
-                       
-                ]
+                doc
+                for doc in db.get_collection("movies").find(
+                    {
+                        "vector_id": {
+                            "$in": [
+                                int(x) for x in list(result.to_df()["index"].values)
+                            ]
+                        }
+                    }
+                )
+            ]
         else:
-            lister=[int(x) for x in list(result.to_df()["index"].values)]
+            lister = [int(x) for x in list(result.to_df()["index"].values)]
             pipeline = [
                 {
                     "$match": {
                         "vector_id": {
-                            "$in": [int(x) for x in list(result.to_df()["index"].values)]
+                            "$in": [
+                                int(x) for x in list(result.to_df()["index"].values)
+                            ]
                         }
                     }
                 },
@@ -234,24 +233,21 @@ class RecommendationSystem:
                         "from": "watch-history",
                         "localField": "_id",
                         "foreignField": "movieId",
-                        "as": "watch_history"
+                        "as": "watch_history",
                     }
                 },
-                {
-                    "$match": {
-                        "watch_history": {"$ne": []}
-                    }
-                },
-                 {
-            "$unset": "watch_history" 
-        }
+                {"$match": {"watch_history": {"$ne": []}}},
+                {"$unset": "watch_history"},
             ]
-            movie_docs = [doc for doc in db.get_collection("movies").aggregate( pipeline)]
+            movie_docs = [
+                doc for doc in db.get_collection("movies").aggregate(pipeline)
+            ]
         if movie_docs:
             reranked_docs = self.rerank(
-                    query_json=response_json, docs=movie_docs, search_results=result.to_list()
-                )
+                query_json=response_json,
+                docs=movie_docs,
+                search_results=result.to_list(),
+            )
             return reranked_docs
         else:
             return []
-        

@@ -1,6 +1,6 @@
 from pymongo.server_api import ServerApi
 from pymongo.mongo_client import MongoClient
-import os 
+import os
 
 mongo_connection_uri = os.environ.get("MONGO_CONNECTION_URI")
 
