@@ -1,6 +1,6 @@
 # GPT4Rec
 
-Using LLMs to enhance Recommendation Systems we have built: 
+Using LLMs to enhance Recommendation Systems 
 ## MovieBox
 An application to get the movies of your desire.
 
