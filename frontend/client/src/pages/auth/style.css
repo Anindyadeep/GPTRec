@@ -1,0 +1,137 @@
+.welcome-message {
+  font-size: 32px;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeEffect 2.5s forwards;
+}
+
+@keyframes fadeEffect {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.box {
+  position: relative;
+  width: 380px;
+  height: 280px;
+  background: #1c1c1c;
+  border-radius: 8px;
+  overflow: hidden;
+  
+}
+
+.box form {
+  align-items: center;
+  position: absolute;
+  inset: 4px;
+  background: linear-gradient(135deg, #222, #444);
+  padding: 50px 40px;
+  border-radius: 8px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.box form h2 {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: 0.1em;
+}
+
+.box form .input-box {
+  position: relative;
+  width: 300px;
+  margin-top: 35px;
+}
+
+.box form .input-box input {
+  position: relative;
+  width: 100%;
+  padding: 20px 10px 10px;
+  background: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  color: #23242a;
+  font-size: 1em;
+  letter-spacing: 0.05em;
+  transition: 0.5s;
+  z-index: 10;
+}
+
+.box form .input-box span {
+  position: absolute;
+  left: 0;
+  padding: 20px 0px 10px;
+  pointer-events: none;
+  color: #8f8f8f;
+  font-size: 1em;
+  letter-spacing: 0.05em;
+  transition: 0.5s;
+  opacity: 1; /* Set initial opacity */
+  transform: translateY(0);
+}
+
+.box form .input-box input:valid~span,
+.box form .input-box input:focus~span {
+  color: #fff;
+  opacity: 0;
+  transform: translateY(-34px);
+}
+
+.box form .input-box i {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: 0.5s;
+  pointer-events: none;
+}
+
+.box form .input-box input:valid~i,
+.box form .input-box input:focus~i {
+  height: 44px;
+}
+
+.box form input[type="submit"] {
+  border: none;
+  outline: none;
+  padding: 9px 25px;
+  background: linear-gradient(135deg, #fff, #f0f0f0);
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  width: 100px;
+  margin-top: 30px;
+  border: 2px solid linear-gradient(135deg, #222, #444);
+  transition: .5s ease;
+}
+
+.box form input[type="submit"]:active {
+  opacity: 0.8;
+}
+
+.box form input[type="submit"]:hover {
+  transform: scale(1.05);
+}

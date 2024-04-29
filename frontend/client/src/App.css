@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+.material-symbols-outlined {
+  color: rgb(252, 222, 35);
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 200,
+    'GRAD' -25,
+    'opsz' 15,
+}
+
+.card{
+  margin: 20px;
+  overflow: hidden;
+  box-shadow: 0 5px 10px rgba( #000, .8 );
+  transform-origin: center top;
+  transform-style: preserve-3d;
+  transform: translateZ( 0 );
+  transition: .3s;
+}
+
+.skeleton{
+  
+}

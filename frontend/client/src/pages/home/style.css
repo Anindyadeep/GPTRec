@@ -1,0 +1,59 @@
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}
+
+.home {
+ 
+  width: 90%;
+  padding: 30;
+  justify-content:center;
+  /* max-width: 800px; */
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.movie-list {
+ 
+  width: "75%";
+  /* display: grid; */
+  /* grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); */
+ width: 230;
+}
+
+.movie {
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: 1px solid #f6f6f6;
+  text-align: center;
+}
+
+.movie:hover {
+  background-color: #f6f6f6;
+  color: #04152d
+}
+.no-underline{
+  text-decoration: none;
+}
+
+/* Custom styles for slider dots */
+.slick-dots li button {
+  /* Adjust the font size to make the dots bigger */
+  font-size: 16px !important; /* You can adjust the size as needed */
+}
+
+/* Optional: Change dot color */
+.slick-dots li button:before {
+  color: #000 !important; /* Change to your desired color */
+}
+
+.hero{
+  height: 600;
+}
